@@ -1,4 +1,4 @@
-﻿namespace Pepper.Structures;
+namespace Pepper.Structures;
 
 public class SoundBankParameter {
     public string Id { get; set; } = null!;

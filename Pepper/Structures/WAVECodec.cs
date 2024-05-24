@@ -1,4 +1,4 @@
-﻿namespace Pepper.Structures;
+namespace Pepper.Structures;
 
 public enum WAVECodec : ushort {
     WwiseOpus = 0x3041,

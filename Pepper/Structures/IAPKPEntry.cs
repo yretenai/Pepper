@@ -1,4 +1,4 @@
-﻿namespace Pepper.Structures;
+namespace Pepper.Structures;
 
 public interface IAPKPEntry {
     public ulong Id { get; set; }

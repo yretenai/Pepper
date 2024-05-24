@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using Pepper.Structures;
 
 namespace Pepper;

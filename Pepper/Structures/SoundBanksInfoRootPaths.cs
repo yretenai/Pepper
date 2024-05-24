@@ -1,4 +1,4 @@
-﻿namespace Pepper.Structures;
+namespace Pepper.Structures;
 
 public class SoundBankPaths {
     public string ProjectRoot { get; set; } = null!;

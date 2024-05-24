@@ -1,4 +1,4 @@
-﻿namespace Pepper.Structures;
+namespace Pepper.Structures;
 
 public enum WAVEChannelMask {
     MONO = WAVESpeakerPosition.FC,

@@ -1,4 +1,4 @@
-﻿namespace Pepper.Structures;
+namespace Pepper.Structures;
 
 public class SoundBankChild {
     public string SwitchValue { get; set; } = null!;

@@ -1,4 +1,4 @@
-﻿namespace Pepper.Structures;
+namespace Pepper.Structures;
 
 public class SoundBankFile {
     public ulong Id { get; set; }
