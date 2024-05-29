@@ -112,6 +112,7 @@ internal sealed class BitOggStream : IDisposable {
 			First = false;
 			Continue = nextContinued;
 			PayloadBytes = 0;
+			PageBuffer.Clear();
 		}
 	}
 
