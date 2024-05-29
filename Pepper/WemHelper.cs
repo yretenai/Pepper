@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Pepper.Structures;
 
 namespace Pepper;
@@ -21,6 +22,19 @@ public static class WemHelper {
 			WAVECodec.WwisePTADPCM => new WwiseRIFFPTADPCM(stream, leaveOpen),
 			_ => new WwiseRIFFDummy(stream, leaveOpen),
 		};
+
+	public static WwiseType GetType(Stream stream) {
+		var data = 0;
+		stream.ReadExactly(MemoryMarshal.AsBytes(new Span<int>(ref data)));
+		stream.Position -= 4;
+
+		return data switch {
+			       0x46464952 => WwiseType.AudioStream,
+			       0x44484B42 => WwiseType.Soundbank,
+			       0x4b504b41 => WwiseType.AudioPack,
+			       _ => WwiseType.Unknown,
+		       };
+	}
 
 	private static ulong Hash(string text) => text.Aggregate(0xCBF29CE484222325ul, (current, ch) => (current * 0x100000001B3UL) ^ ch);
 	private static uint Hash32(string text) => text.Aggregate(0x811C9DC5u, (current, ch) => (current * 0x1000193u) ^ ch);
