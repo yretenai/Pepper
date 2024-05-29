@@ -26,7 +26,7 @@ public sealed record WwiseRIFFOpus : AbstractRIFFFile {
 		WAVEFormatChunkEx_WwiseOpus fmt = default;
 		var buffer = MemoryMarshal.AsBytes(new Span<WAVEFormatChunkEx_WwiseOpus>(ref fmt));
 		stream.ReadExactly(buffer);
-		if ((FormatChunkEx.ChannelLayout & 0xFF) == FormatChunk.Channels) {
+		if ((fmt.ChannelLayout & 0xFF) == FormatChunk.Channels) {
 			ChannelType = (byte) ((fmt.ChannelLayout >> 8) & 0x0F);
 			fmt.ChannelLayout >>= 12;
 		}
