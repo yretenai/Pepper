@@ -18,7 +18,7 @@ foreach (var file in args) {
 			Console.WriteLine(file);
 
 			using var output = new FileStream(Path.ChangeExtension(file, codec.Format.ToString("G").ToLower()), FileMode.Create, FileAccess.ReadWrite);
-			if (codec is WwiseRIFFVorbis vorbis && Environment.OSVersion.Platform != PlatformID.Win32NT) {
+			if (codec is WwiseRIFFVorbis vorbis && (Environment.OSVersion.Platform != PlatformID.Win32NT || (File.Exists("ogg.dll") && File.Exists("vorbis.dll")))) {
 				using var revorb = new Revorb(vorbis);
 				revorb.Decode(output);
 			} else {
