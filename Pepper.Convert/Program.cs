@@ -14,10 +14,17 @@ foreach (var file in args) {
 			if (codec.Format == AudioFormat.Wem) {
 				continue;
 			}
+
 			Console.WriteLine(file);
 
 			using var output = new FileStream(Path.ChangeExtension(file, codec.Format.ToString("G").ToLower()), FileMode.Create, FileAccess.ReadWrite);
-			codec.Decode(output);
+			if (codec is WwiseRIFFVorbis vorbis && Environment.OSVersion.Platform != PlatformID.Win32NT) {
+				using var revorb = new Revorb(vorbis);
+				revorb.Decode(output);
+			} else {
+				codec.Decode(output);
+			}
+
 			break;
 		}
 		case WwiseType.Soundbank: break; // todo

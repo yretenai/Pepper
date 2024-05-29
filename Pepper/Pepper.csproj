@@ -15,4 +15,8 @@
 		</None>
 	</ItemGroup>
 
+	<ItemGroup>
+		<PackageReference Include="OggVorbisSharp" Version="1.0.1"/>
+	</ItemGroup>
+
 </Project>
