@@ -16,11 +16,14 @@ public sealed record Revorb(WwiseRIFFVorbis Vorbis) : IDisposable {
 		Vorbis.Dispose();
 	}
 
-	public unsafe void Decode(Stream outputStream) {
+	public void Decode(Stream outputStream) {
 		using var memoryStream = new MemoryStream();
 		Vorbis.Decode(memoryStream);
 		memoryStream.Position = 0;
+		Rebuild(memoryStream, outputStream);
+	}
 
+	public static unsafe void Rebuild(Stream inputStream, Stream outputStream) {
 		ogg_sync_state sync_in = default;
 		ogg_sync_state sync_out = default;
 		ogg_stream_state stream_in = default;
@@ -35,7 +38,7 @@ public sealed record Revorb(WwiseRIFFVorbis Vorbis) : IDisposable {
 			ogg_packet packet = default;
 			ogg_page page = default;
 
-			if (!CopyHeaders(memoryStream, &sync_in, &stream_in, outputStream, &sync_out, &stream_out, &vi)) {
+			if (!CopyHeaders(inputStream, &sync_in, &stream_in, outputStream, &sync_out, &stream_out, &vi)) {
 				throw new InvalidOperationException();
 			}
 
@@ -54,7 +57,7 @@ public sealed record Revorb(WwiseRIFFVorbis Vorbis) : IDisposable {
 
 					if (res == 0) {
 						var buffer = new Span<byte>(ogg_sync_buffer(&sync_in, new CLong(4096)), 4096);
-						var numread = memoryStream.Read(buffer);
+						var numread = inputStream.Read(buffer);
 						if (numread > 0) {
 							ogg_sync_wrote(&sync_in, new CLong(numread));
 						} else {
