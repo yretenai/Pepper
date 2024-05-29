@@ -1,38 +1,29 @@
 using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.IO;
 using Pepper.Structures;
 
 namespace Pepper;
 
-internal sealed class BitOggStream : IDisposable {
-	private readonly Memory<byte> PageBufferRaw = new byte[(int) SizeEnum.HeaderBytes + (int) SizeEnum.MaxSegments + (int) SizeEnum.SegmentSize * (int) SizeEnum.MaxSegments];
+internal sealed class BitOggStream(Stream stream) : IDisposable {
+	private const int PageBufferSize = (int) SizeEnum.HeaderBytes + (int) SizeEnum.MaxSegments + (int) SizeEnum.SegmentSize * (int) SizeEnum.MaxSegments;
+	private IMemoryOwner<byte> PageBufferRaw { get; } = MemoryPool<byte>.Shared.Rent(PageBufferSize);
 
-	public BitOggStream(Stream stream) {
-		Output = stream;
-		BitBuffer = 0;
-		BitsStored = 0;
-		PayloadBytes = 0;
-		First = true;
-		Continue = false;
-		Granule = 0;
-		SEQN = 0;
-	}
-
-	private Stream Output { get; }
-
+	private Stream Output { get; } = stream;
 
 	private byte BitBuffer { get; set; }
 	private uint BitsStored { get; set; }
 	public int PayloadBytes { get; set; }
-	private bool First { get; set; }
+	private bool First { get; set; } = true;
 	private bool Continue { get; set; }
 	private uint Granule { get; set; }
 	private uint SEQN { get; set; }
-	private Span<byte> PageBuffer => PageBufferRaw.Span;
+	private Span<byte> PageBuffer => PageBufferRaw.Memory.Span[..PageBufferSize];
 
 	public void Dispose() {
 		FlushPage();
+		PageBufferRaw.Dispose();
 	}
 
 	public void PutBit(bool bit) {
