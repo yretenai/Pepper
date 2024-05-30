@@ -88,6 +88,7 @@ public record WwiseRIFFFile : IDisposable, IChunkedFile {
 	}
 
 	public virtual void Decode(Stream outputStream) {
-
+		Stream.Position = 0;
+		Stream.CopyTo(outputStream);
 	}
 }
