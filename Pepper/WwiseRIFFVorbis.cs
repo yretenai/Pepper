@@ -11,7 +11,7 @@ using Pepper.Structures;
 namespace Pepper;
 
 // ported from ww2ogg
-public sealed record WwiseRIFFVorbis : AbstractRIFFFile {
+public sealed record WwiseRIFFVorbis : WwiseRIFFFile {
 	public WwiseRIFFVorbis(Stream stream, string codebookPath, bool leaveOpen = false) : base(stream, leaveOpen) {
 		using var codebooksStream = new FileStream(codebookPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 		WwiseCodebooks = new WwiseCodebook(codebooksStream);

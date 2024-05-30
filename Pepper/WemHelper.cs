@@ -8,19 +8,21 @@ using Pepper.Structures;
 namespace Pepper;
 
 public static class WemHelper {
-	public static WAVECodec GetCodec(Stream stream) {
+	public static WAVECodec GetCodec(Stream stream) => GetFormatChunk(stream).Codec;
+
+	public static WAVEFormatChunk GetFormatChunk(Stream stream) {
 		var pos = stream.Position;
-		using var riff = new DummyRIFFFile(stream, true);
+		using var riff = new WwiseRIFFFile(stream, true);
 		stream.Position = pos;
-		return riff.FormatChunk.Codec;
+		return riff.FormatChunk;
 	}
 
-	public static AbstractRIFFFile GetDecoder(Stream stream, bool leaveOpen = false, string codebooksPath = "packed_codebooks_aoTuV_603.bin", bool opusForceStereo = false) =>
+	public static WwiseRIFFFile GetDecoder(Stream stream, bool leaveOpen = false, string codebooksPath = "packed_codebooks_aoTuV_603.bin", bool opusForceStereo = false) =>
 		GetCodec(stream) switch {
 			WAVECodec.WwiseOpus => new WwiseRIFFOpus(stream, opusForceStereo, leaveOpen),
 			WAVECodec.WwiseVorbis => new WwiseRIFFVorbis(stream, codebooksPath, leaveOpen),
 			WAVECodec.WwisePTADPCM => new WwiseRIFFPTADPCM(stream, leaveOpen),
-			_ => new WwiseRIFFDummy(stream, leaveOpen),
+			_ => new WwiseRIFFFile(stream, leaveOpen),
 		};
 
 	public static WwiseType GetType(Stream stream) {
@@ -54,10 +56,5 @@ public static class WemHelper {
 		}
 
 		return lut;
-	}
-
-	private sealed record DummyRIFFFile : AbstractRIFFFile {
-		public DummyRIFFFile(Stream stream, bool leaveOpen) : base(stream, leaveOpen) { }
-		public override void Decode(Stream outputStream) => throw new NotSupportedException();
 	}
 }

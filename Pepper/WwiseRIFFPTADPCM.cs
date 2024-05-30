@@ -8,7 +8,7 @@ using Pepper.Structures;
 namespace Pepper;
 
 // ported from vgmstream
-public record WwiseRIFFPTADPCM : AbstractRIFFFile {
+public record WwiseRIFFPTADPCM : WwiseRIFFFile {
     private static readonly int[,,] TABLE = { {
             {   -14,  2},  {   -10,  2},  {    -7,  1},  {    -5,  1},   {   -3,  0},   {   -2,  0},   {   -1,  0},   {    0,  0},
             {     0,  0},  {     1,  0},  {     2,  0},  {     3,  0},   {    5,  1},   {    7,  1},   {   10,  2},   {   14,  2},

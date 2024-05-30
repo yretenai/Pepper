@@ -7,8 +7,8 @@ using Pepper.Structures;
 
 namespace Pepper;
 
-public abstract record AbstractRIFFFile : IDisposable, IChunkedFile {
-	protected AbstractRIFFFile(Stream stream, bool leaveOpen = false) {
+public record WwiseRIFFFile : IDisposable, IChunkedFile {
+	public WwiseRIFFFile(Stream stream, bool leaveOpen = false) {
 		Stream = stream;
 		LeaveOpen = leaveOpen;
 
@@ -75,7 +75,7 @@ public abstract record AbstractRIFFFile : IDisposable, IChunkedFile {
 		GC.SuppressFinalize(this);
 	}
 
-	~AbstractRIFFFile() {
+	~WwiseRIFFFile() {
 		Dispose(false);
 	}
 
@@ -87,5 +87,7 @@ public abstract record AbstractRIFFFile : IDisposable, IChunkedFile {
 		}
 	}
 
-	public abstract void Decode(Stream outputStream);
+	public virtual void Decode(Stream outputStream) {
+
+	}
 }
