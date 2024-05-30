@@ -46,10 +46,10 @@ public sealed record Revorb(WwiseRIFFVorbis Vorbis) : IDisposable {
 			var packetnum = 0L;
 			var lastbs = 0L;
 
+			ogg_page opage = default;
 			while (true) {
-				var eos = 0;
-				ogg_page opage = default;
-				while (eos == 0) {
+				var eos = false;
+				while (!eos) {
 					var res = ogg_sync_pageout(&sync_in, &page);
 					if (res < 0) {
 						throw new InvalidOperationException();
@@ -61,14 +61,14 @@ public sealed record Revorb(WwiseRIFFVorbis Vorbis) : IDisposable {
 						if (numread > 0) {
 							ogg_sync_wrote(&sync_in, new CLong(numread));
 						} else {
-							eos = 2;
+							eos = true;
 						}
 
 						continue;
 					}
 
 					if (ogg_page_eos(&page) == 1) {
-						eos = 1;
+						eos = true;
 					}
 
 					ogg_stream_pagein(&stream_in, &page);
@@ -103,10 +103,6 @@ public sealed record Revorb(WwiseRIFFVorbis Vorbis) : IDisposable {
 							}
 						}
 					}
-				}
-
-				if (eos == 2) {
-					break;
 				}
 
 				packet.e_o_s = new CLong(1);
