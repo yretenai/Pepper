@@ -17,8 +17,12 @@ public static class WemHelper {
 		return riff.FormatChunk;
 	}
 
-	public static WwiseRIFFFile GetDecoder(Stream stream, bool leaveOpen = false, string codebooksPath = "packed_codebooks_aoTuV_603.bin", bool opusForceStereo = false) =>
-		GetCodec(stream) switch {
+	public static WwiseRIFFFile GetDecoder(Stream stream, bool leaveOpen = false, string codebooksPath = "packed_codebooks_aoTuV_603.bin", bool opusForceStereo = false) => GetDecoder(GetCodec(stream), stream, leaveOpen, codebooksPath, opusForceStereo);
+
+	public static WwiseRIFFFile GetDecoder(WAVEFormatChunk chunk, Stream stream, bool leaveOpen = false, string codebooksPath = "packed_codebooks_aoTuV_603.bin", bool opusForceStereo = false) => GetDecoder(chunk.Codec, stream, leaveOpen, codebooksPath, opusForceStereo);
+
+	public static WwiseRIFFFile GetDecoder(WAVECodec codec, Stream stream, bool leaveOpen = false, string codebooksPath = "packed_codebooks_aoTuV_603.bin", bool opusForceStereo = false) =>
+		codec switch {
 			WAVECodec.WwiseOpus => new WwiseRIFFOpus(stream, opusForceStereo, leaveOpen),
 			WAVECodec.WwiseVorbis => new WwiseRIFFVorbis(stream, codebooksPath, leaveOpen),
 			WAVECodec.WwisePTADPCM => new WwiseRIFFPTADPCM(stream, leaveOpen),
