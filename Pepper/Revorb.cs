@@ -60,11 +60,10 @@ public sealed record Revorb(WwiseRIFFVorbis Vorbis) : IDisposable {
 						var numread = inputStream.Read(buffer);
 						if (numread > 0) {
 							ogg_sync_wrote(&sync_in, new CLong(numread));
-						} else {
-							eos = true;
+							continue;
 						}
 
-						continue;
+						break;
 					}
 
 					if (ogg_page_eos(&page) == 1) {
