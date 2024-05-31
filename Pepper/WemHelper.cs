@@ -8,6 +8,34 @@ using Pepper.Structures;
 namespace Pepper;
 
 public static class WemHelper {
+	static WemHelper() {
+		var ogg = IntPtr.Zero;
+		var vorbis = IntPtr.Zero;
+		try {
+			var platformPrefix = Environment.OSVersion.Platform is PlatformID.Win32NT ? string.Empty : "lib";
+			var platformSuffix = Environment.OSVersion.Platform switch {
+				                     PlatformID.Win32NT => "dll",
+				                     PlatformID.MacOSX => "dylib",
+				                     _ => "so",
+			                     };
+
+			if (NativeLibrary.TryLoad($"{platformPrefix}ogg.{platformSuffix}", out ogg) &&
+			    NativeLibrary.TryLoad($"{platformPrefix}vorbis.{platformSuffix}", out vorbis)) {
+				CanUseRevorb = true;
+			}
+		} finally {
+			if (ogg != IntPtr.Zero) {
+				NativeLibrary.Free(ogg);
+			}
+
+			if (vorbis != IntPtr.Zero) {
+				NativeLibrary.Free(vorbis);
+			}
+		}
+	}
+
+	public static bool CanUseRevorb { get; set; }
+
 	public static WAVECodec GetCodec(Stream stream) => GetFormatChunk(stream).Codec;
 
 	public static WAVEFormatChunk GetFormatChunk(Stream stream) {
@@ -17,17 +45,19 @@ public static class WemHelper {
 		return riff.FormatChunk;
 	}
 
-	public static WwiseRIFFFile GetDecoder(Stream stream, bool leaveOpen = false, string codebooksPath = "packed_codebooks_aoTuV_603.bin", bool opusForceStereo = false) => GetDecoder(GetCodec(stream), stream, leaveOpen, codebooksPath, opusForceStereo);
+	public static WwiseRIFFFile GetDecoder(Stream stream, bool leaveOpen = false, WemCodecOptions? options = default) => GetDecoder(GetCodec(stream), stream, leaveOpen, options);
 
-	public static WwiseRIFFFile GetDecoder(WAVEFormatChunk chunk, Stream stream, bool leaveOpen = false, string codebooksPath = "packed_codebooks_aoTuV_603.bin", bool opusForceStereo = false) => GetDecoder(chunk.Codec, stream, leaveOpen, codebooksPath, opusForceStereo);
+	public static WwiseRIFFFile GetDecoder(WAVEFormatChunk chunk, Stream stream, bool leaveOpen = false, WemCodecOptions? options = default) => GetDecoder(chunk.Codec, stream, leaveOpen, options);
 
-	public static WwiseRIFFFile GetDecoder(WAVECodec codec, Stream stream, bool leaveOpen = false, string codebooksPath = "packed_codebooks_aoTuV_603.bin", bool opusForceStereo = false) =>
-		codec switch {
-			WAVECodec.WwiseOpus => new WwiseRIFFOpus(stream, opusForceStereo, leaveOpen),
-			WAVECodec.WwiseVorbis => new WwiseRIFFVorbis(stream, codebooksPath, leaveOpen),
-			WAVECodec.WwisePTADPCM => new WwiseRIFFPTADPCM(stream, leaveOpen),
-			_ => new WwiseRIFFFile(stream, leaveOpen),
-		};
+	public static WwiseRIFFFile GetDecoder(WAVECodec codec, Stream stream, bool leaveOpen = false, WemCodecOptions? options = default) {
+		options ??= WemCodecOptions.Default;
+		return codec switch {
+			       WAVECodec.WwiseOpus => new WwiseRIFFOpus(stream, options.OpusForceStereo, leaveOpen),
+			       WAVECodec.WwiseVorbis => new WwiseRIFFVorbis(stream, options.CodebooksPath, leaveOpen),
+			       WAVECodec.WwisePTADPCM => new WwiseRIFFPTADPCM(stream, leaveOpen),
+			       _ => new WwiseRIFFFile(stream, leaveOpen),
+		       };
+	}
 
 	public static WwiseType GetType(Stream stream) {
 		var data = 0;
