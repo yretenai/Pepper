@@ -48,102 +48,102 @@ public record WwiseRIFFPTADPCM : WwiseRIFFFile {
         },
     };
 
-    public WwiseRIFFPTADPCM(Stream stream, bool leaveOpen = false) : base(stream, leaveOpen) {
-        if (FormatChunk.Codec is not WAVECodec.WwisePTADPCM) {
-            throw new InvalidDataException("Not a Wwise PTADPCM file");
-        }
+	public WwiseRIFFPTADPCM(Stream stream, bool leaveOpen = false) : base(stream, leaveOpen) {
+		if (FormatChunk.Codec is not WAVECodec.WwisePTADPCM) {
+			throw new InvalidDataException("Not a Wwise PTADPCM file");
+		}
 
-        var dataChunk = Chunks[DataOffset];
-        InterleavedFrameSize = FormatChunk.BlockSize / FormatChunk.Channels;
-        SamplesPerFrame = 2 + (InterleavedFrameSize - 5) * 2;
-        NumSamples = dataChunk.Size / (FormatChunk.Channels * InterleavedFrameSize) * SamplesPerFrame;
-    }
+		var dataChunk = Chunks[DataOffset];
+		InterleavedFrameSize = FormatChunk.BlockSize / FormatChunk.Channels;
+		SamplesPerFrame = 2 + (InterleavedFrameSize - 5) * 2;
+		NumSamples = dataChunk.Size / (FormatChunk.Channels * InterleavedFrameSize) * SamplesPerFrame;
+	}
 
-    public override AudioFormat Format => AudioFormat.Wav;
+	public override AudioFormat Format => AudioFormat.Wav;
 
-    public long NumSamples { get; }
-    public int SamplesPerFrame { get; }
-    public int InterleavedFrameSize { get; }
+	public long NumSamples { get; }
+	public int SamplesPerFrame { get; }
+	public int InterleavedFrameSize { get; }
 
-    public override void Decode(Stream outputStream) {
-        var channels = new short[FormatChunk.Channels][];
-        var sampleOffset = new int[FormatChunk.Channels];
+	public override void Decode(Stream outputStream) {
+		var channels = new short[FormatChunk.Channels][];
+		var sampleOffset = new int[FormatChunk.Channels];
 
-        for (var i = 0; i < channels.Length; i++) {
-            channels[i] = new short[NumSamples];
-        }
+		for (var i = 0; i < channels.Length; i++) {
+			channels[i] = new short[NumSamples];
+		}
 
-        var dataChunk = Chunks[DataOffset];
-        using var buffer = MemoryPool<byte>.Shared.Rent((int) dataChunk.Size);
-        Stream.Position = DataOffset;
-        Stream.ReadExactly(buffer.Memory.Span[..(int) dataChunk.Size]);
+		var dataChunk = Chunks[DataOffset];
+		using var buffer = MemoryPool<byte>.Shared.Rent((int) dataChunk.Size);
+		Stream.Position = DataOffset;
+		Stream.ReadExactly(buffer.Memory.Span[..(int) dataChunk.Size]);
 
-        var offset = 0;
+		var offset = 0;
 
-        for (var i = 0; i < NumSamples; i += SamplesPerFrame) {
-            for (var ch = 0; ch < channels.Length; ++ch) {
-                var frame = buffer.Memory.Span.Slice(offset, InterleavedFrameSize);
-                offset += InterleavedFrameSize;
+		for (var i = 0; i < NumSamples; i += SamplesPerFrame) {
+			for (var ch = 0; ch < channels.Length; ++ch) {
+				var frame = buffer.Memory.Span.Slice(offset, InterleavedFrameSize);
+				offset += InterleavedFrameSize;
 
-                var hist2 = BinaryPrimitives.ReadInt16LittleEndian(frame);
-                var hist1 = BinaryPrimitives.ReadInt16LittleEndian(frame[2..]);
-                var stepIndex = (int) frame[4];
+				var hist2 = BinaryPrimitives.ReadInt16LittleEndian(frame);
+				var hist1 = BinaryPrimitives.ReadInt16LittleEndian(frame[2..]);
+				var stepIndex = (int) frame[4];
 
-                if (stepIndex > 12) {
-                    stepIndex = 12;
-                }
+				if (stepIndex > 12) {
+					stepIndex = 12;
+				}
 
-                channels[ch][sampleOffset[ch]++] = hist2;
-                channels[ch][sampleOffset[ch]++] = hist1;
+				channels[ch][sampleOffset[ch]++] = hist2;
+				channels[ch][sampleOffset[ch]++] = hist1;
 
-                for (var sampleIndex = 0; sampleIndex < SamplesPerFrame - 2; ++sampleIndex) {
-                    var nibbles = frame[5 + sampleIndex / 2];
-                    var nibble = (sampleIndex & 1) == 0 ? (nibbles >> 0) & 0xF : (nibbles >> 4) & 0xF;
+				for (var sampleIndex = 0; sampleIndex < SamplesPerFrame - 2; ++sampleIndex) {
+					var nibbles = frame[5 + sampleIndex / 2];
+					var nibble = (sampleIndex & 1) == 0 ? (nibbles >> 0) & 0xF : (nibbles >> 4) & 0xF;
 
-                    var step = TABLE[stepIndex, nibble, 0];
-                    stepIndex = TABLE[stepIndex, nibble, 1];
-                    var sample = step + 2 * hist1 - hist2;
-                    sample = sample switch {
-                                 > 32767  => 32767,
-                                 < -32768 => -32768,
-                                 _        => sample,
-                             };
+					var step = TABLE[stepIndex, nibble, 0];
+					stepIndex = TABLE[stepIndex, nibble, 1];
+					var sample = step + 2 * hist1 - hist2;
+					sample = sample switch {
+						         > 32767 => 32767,
+						         < -32768 => -32768,
+						         _ => sample,
+					         };
 
-                    channels[ch][sampleOffset[ch]++] = (short) sample;
+					channels[ch][sampleOffset[ch]++] = (short) sample;
 
-                    hist2 = hist1;
-                    hist1 = (short) sample;
-                }
-            }
-        }
+					hist2 = hist1;
+					hist1 = (short) sample;
+				}
+			}
+		}
 
-        var dataLength = NumSamples * FormatChunk.Channels * sizeof(short);
-        var totalWavLength = 44 + dataLength;
+		var dataLength = NumSamples * FormatChunk.Channels * sizeof(short);
+		var totalWavLength = 44 + dataLength;
 
-        Span<byte> header = stackalloc byte[44];
-        var header16 = MemoryMarshal.Cast<byte, ushort>(header);
-        var header32 = MemoryMarshal.Cast<byte, uint>(header);
-        header32[0] = 0x46464952; // "RIFF"
-        header32[1] = (uint) (totalWavLength - 8);
-        header32[2] = 0x45564157; // "WAVE"
-        header32[3] = 0x20746D66; // "fmt "
-        header32[4] = 16;
-        header32[5] = 0x11; // WAVE_FORMAT_EXTENSIBLE
-        header16[10] = 0x1; // WAVE_FORMAT_PCM
-        header16[11] = FormatChunk.Channels;
-        header32[6] = (uint) FormatChunk.SampleRate;
-        header32[7] = (uint) (FormatChunk.SampleRate * FormatChunk.Channels * sizeof(short)); // bytes per second
-        header16[16] = (ushort) (FormatChunk.Channels * sizeof(short)); // block align
-        header16[17] = 16; // bits per sample
-        header32[9] = 0x61746164; // "data"
-        header32[10] = (uint) dataLength;
+		Span<byte> header = stackalloc byte[44];
+		var header16 = MemoryMarshal.Cast<byte, ushort>(header);
+		var header32 = MemoryMarshal.Cast<byte, uint>(header);
+		header32[0] = 0x46464952; // "RIFF"
+		header32[1] = (uint) (totalWavLength - 8);
+		header32[2] = 0x45564157; // "WAVE"
+		header32[3] = 0x20746D66; // "fmt "
+		header32[4] = 16;
+		header32[5] = 0x11; // WAVE_FORMAT_EXTENSIBLE
+		header16[10] = 0x1; // WAVE_FORMAT_PCM
+		header16[11] = FormatChunk.Channels;
+		header32[6] = (uint) FormatChunk.SampleRate;
+		header32[7] = (uint) (FormatChunk.SampleRate * FormatChunk.Channels * sizeof(short)); // bytes per second
+		header16[16] = (ushort) (FormatChunk.Channels * sizeof(short)); // block align
+		header16[17] = 16; // bits per sample
+		header32[9] = 0x61746164; // "data"
+		header32[10] = (uint) dataLength;
 
-        outputStream.Write(header);
-        for (var i = 0; i < NumSamples; i++) {
-            foreach (var sample in channels) {
-                outputStream.WriteByte((byte) (sample[i] & 0xFF));
-                outputStream.WriteByte((byte) (sample[i] >> 8));
-            }
-        }
-    }
+		outputStream.Write(header);
+		for (var i = 0; i < NumSamples; i++) {
+			foreach (var sample in channels) {
+				outputStream.WriteByte((byte) (sample[i] & 0xFF));
+				outputStream.WriteByte((byte) (sample[i] >> 8));
+			}
+		}
+	}
 }
