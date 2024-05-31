@@ -18,6 +18,15 @@ public class WwiseSoundbanksInfo {
 		}
 	}
 
+	public WwiseSoundbanksInfo(TextReader reader, string path) {
+		if (Path.GetExtension(path).Equals(".xml", StringComparison.OrdinalIgnoreCase)) {
+			var serializer = new XmlSerializer(typeof(SoundBanksInfo));
+			SoundBanksInfo = (SoundBanksInfo) serializer.Deserialize(reader)!;
+		} else {
+			SoundBanksInfo = JsonSerializer.Deserialize<SoundBanksInfoRoot>(reader.ReadToEnd(), JsonSettings)!.SoundBanksInfo;
+		}
+	}
+
 	private static JsonSerializerOptions JsonSettings { get; } = new() {
 		NumberHandling = JsonNumberHandling.AllowReadingFromString,
 		Converters = {
