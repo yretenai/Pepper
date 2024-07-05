@@ -141,7 +141,7 @@ public record WwiseRIFFVorbis : WwiseRIFFFile {
 
 					Stream.Position = packetPayloadOffset;
 
-					os.SetGranule(granule == 0xFFFFFFFF ? 1 : granule);
+					os.SetGranule(granule == 0xFFFFFFFF ? -1 : (int) granule);
 
 					if (ModPackets) {
 						if (modeBlockflag == null) {
@@ -229,7 +229,6 @@ public record WwiseRIFFVorbis : WwiseRIFFFile {
 					outputStream.SetLength(0);
 					Rebuild(outputStream, tmpStream);
 				} catch {
-					WemHelper.CanUseRevorb = false;
 					tmpStream.Position = 0;
 					outputStream.Position = 0;
 					outputStream.SetLength(0);

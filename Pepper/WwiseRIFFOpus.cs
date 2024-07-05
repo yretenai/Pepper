@@ -118,23 +118,20 @@ public sealed record WwiseRIFFOpus : WwiseRIFFFile {
 
 	#region Opus Header
 
-		Span<byte> buffer = stackalloc byte[19];
+		Span<byte> buffer = stackalloc byte[21];
+		buffer.Clear();
 		"OpusHead"u8.CopyTo(buffer);
 		buffer[8] = 1;
 		buffer[9] = (byte) FormatChunk.Channels;
-		BinaryPrimitives.WriteUInt16LittleEndian(buffer[10..], FormatChunkEx.Skip);
+		// "pre-skip" is not the same as skip, apparently.
+		// basically has no effect?
+		// BinaryPrimitives.WriteInt16LittleEndian(buffer[10..], FormatChunkEx.Skip);
 		BinaryPrimitives.WriteInt32LittleEndian(buffer[12..], FormatChunk.SampleRate);
-		// buffer[14] = 0;
 		buffer[18] = FormatChunkEx.MappingFamily;
+		buffer[19] = (byte) StreamCount;
+		buffer[20] = (byte) CoupledCount;
 		ogg.Write(buffer);
-
-		if (FormatChunkEx.MappingFamily > 0) {
-			buffer = stackalloc byte[2];
-			buffer[0] = (byte) StreamCount;
-			buffer[1] = (byte) CoupledCount;
-			ogg.Write(buffer);
-			ogg.Write(ChannelMapping);
-		}
+		ogg.Write(ChannelMapping);
 
 		ogg.FlushPage();
 
@@ -144,6 +141,7 @@ public sealed record WwiseRIFFOpus : WwiseRIFFFile {
 
 		var vendor = Encoding.ASCII.GetBytes(Vendor);
 		buffer = stackalloc byte[12];
+		buffer.Clear();
 		"OpusTags"u8.CopyTo(buffer);
 		BinaryPrimitives.WriteInt32LittleEndian(buffer[8..], vendor.Length);
 		ogg.Write(buffer);
@@ -154,14 +152,20 @@ public sealed record WwiseRIFFOpus : WwiseRIFFFile {
 	#endregion
 
 		Stream.Position = DataOffset;
-		var granule = 0u;
+		var granule = 0;
 		Span<byte> frame = stackalloc byte[0xFFFF];
+		var skip = (int) FormatChunkEx.Skip;
 		foreach (var frameSize in FrameTable) {
 			Stream.ReadExactly(frame[..frameSize]);
-			granule += (uint) (GetNumberOfSamples(frame[..frameSize]) * GetSamplesPerFrame(frame[..frameSize], FormatChunk.SampleRate));
+			granule += GetNumberOfSamples(frame[..frameSize]) * GetSamplesPerFrame(frame[..frameSize], FormatChunk.SampleRate);
+			if (skip > 0) {
+				skip -= frameSize - 1;
+				continue;
+			}
+
 			ogg.SetGranule(granule);
 			ogg.Write(frame[..frameSize]);
-			ogg.FlushPage();
+			ogg.FlushPage(false, granule > FormatChunkEx.Samples);
 		}
 	}
 

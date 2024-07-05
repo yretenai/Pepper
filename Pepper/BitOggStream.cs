@@ -17,7 +17,7 @@ internal sealed class BitOggStream(Stream stream) : IDisposable {
 	public int PayloadBytes { get; set; }
 	private bool First { get; set; } = true;
 	private bool Continue { get; set; }
-	private uint Granule { get; set; }
+	private long Granule { get; set; }
 	private uint SEQN { get; set; }
 	private Span<byte> PageBuffer => PageBufferRaw.Memory.Span[..PageBufferSize];
 
@@ -37,7 +37,7 @@ internal sealed class BitOggStream(Stream stream) : IDisposable {
 		}
 	}
 
-	public void SetGranule(uint g) {
+	public void SetGranule(long g) {
 		Granule = g;
 	}
 
@@ -77,7 +77,7 @@ internal sealed class BitOggStream(Stream stream) : IDisposable {
 			PageBuffer[4] = 0; // stream_structure_version
 			PageBuffer[5] = (byte) ((Continue ? 1 : 0) | (First ? 2 : 0) | (last ? 4 : 0)); // header_type_flag
 
-			BinaryPrimitives.WriteUInt64LittleEndian(PageBuffer[6..], Granule); // granule sample
+			BinaryPrimitives.WriteInt64LittleEndian(PageBuffer[6..], Granule); // granule sample
 			BinaryPrimitives.WriteUInt32LittleEndian(PageBuffer[14..], 1); // stream serial number
 			BinaryPrimitives.WriteUInt32LittleEndian(PageBuffer[18..], SEQN); // page sequence number
 			BinaryPrimitives.WriteUInt32LittleEndian(PageBuffer[22..], 0); // checksum (0 for now)

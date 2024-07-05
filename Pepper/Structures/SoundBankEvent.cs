@@ -8,4 +8,5 @@ public class SoundBankEvent : SoundBankParameter {
 	public List<SoundBankSwitch> SwitchContainers { get; set; } = [];
 	public List<SoundBankParameter> ActionSetSwitch { get; set; } = [];
 	public List<SoundBankParameter> ActionPostEvent { get; set; } = [];
+	public List<SoundBankFile> IncludedMemoryFiles { get; set; } = [];
 }
