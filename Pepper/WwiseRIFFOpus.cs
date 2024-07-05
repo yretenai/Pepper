@@ -123,15 +123,18 @@ public sealed record WwiseRIFFOpus : WwiseRIFFFile {
 		"OpusHead"u8.CopyTo(buffer);
 		buffer[8] = 1;
 		buffer[9] = (byte) FormatChunk.Channels;
-		// "pre-skip" is not the same as skip, apparently.
-		// basically has no effect?
-		// BinaryPrimitives.WriteInt16LittleEndian(buffer[10..], FormatChunkEx.Skip);
+		// This affects the last frame.
+		// BinaryPrimitives.WriteUInt16LittleEndian(buffer[10..], FormatChunkEx.Skip);
 		BinaryPrimitives.WriteInt32LittleEndian(buffer[12..], FormatChunk.SampleRate);
 		buffer[18] = FormatChunkEx.MappingFamily;
-		buffer[19] = (byte) StreamCount;
-		buffer[20] = (byte) CoupledCount;
-		ogg.Write(buffer);
-		ogg.Write(ChannelMapping);
+		if (FormatChunkEx.MappingFamily > 0) {
+			buffer[19] = (byte) StreamCount;
+			buffer[20] = (byte) CoupledCount;
+			ogg.Write(buffer);
+			ogg.Write(ChannelMapping);
+		} else {
+			ogg.Write(buffer[..19]);
+		}
 
 		ogg.FlushPage();
 
@@ -159,7 +162,7 @@ public sealed record WwiseRIFFOpus : WwiseRIFFFile {
 			Stream.ReadExactly(frame[..frameSize]);
 			granule += GetNumberOfSamples(frame[..frameSize]) * GetSamplesPerFrame(frame[..frameSize], FormatChunk.SampleRate);
 			if (skip > 0) {
-				skip -= frameSize - 1;
+				skip -= frameSize;
 				continue;
 			}
 
