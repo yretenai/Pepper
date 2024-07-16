@@ -1,5 +1,3 @@
-using System;
-
 namespace Pepper.Structures;
 
 public class SoundBankFile : SoundBankAsset {
