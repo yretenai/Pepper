@@ -7,7 +7,7 @@ using Pepper.Structures;
 
 namespace Pepper;
 
-public sealed record WwiseSoundbank : IDisposable, IChunkedFile {
+public sealed class WwiseSoundbank : IDisposable, IChunkedFile {
 	public WwiseSoundbank(Stream stream) {
 		BaseStream = stream;
 
@@ -85,4 +85,6 @@ public sealed record WwiseSoundbank : IDisposable, IChunkedFile {
 		size = index.Size;
 		return buffer;
 	}
+
+	public override string ToString() => $"Soundbank {{ {Chunks.Count} chunks, {Header} }}";
 }

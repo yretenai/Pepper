@@ -7,8 +7,8 @@ using Pepper.Structures;
 
 namespace Pepper;
 
-public record WwiseRIFFFile : IDisposable, IChunkedFile {
-	public WwiseRIFFFile(Stream stream, bool leaveOpen = false) {
+public class WaveRIFFFile : IDisposable, IChunkedFile {
+	public WaveRIFFFile(Stream stream, bool leaveOpen = false) {
 		Stream = stream;
 		LeaveOpen = leaveOpen;
 
@@ -75,7 +75,7 @@ public record WwiseRIFFFile : IDisposable, IChunkedFile {
 		GC.SuppressFinalize(this);
 	}
 
-	~WwiseRIFFFile() {
+	~WaveRIFFFile() {
 		Dispose(false);
 	}
 
@@ -91,4 +91,6 @@ public record WwiseRIFFFile : IDisposable, IChunkedFile {
 		Stream.Position = 0;
 		Stream.CopyTo(outputStream);
 	}
+
+	public override string ToString() => $"WAVE {{ {Chunks.Count} chunks, {FormatChunk} }}";
 }

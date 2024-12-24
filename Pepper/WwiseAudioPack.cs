@@ -9,7 +9,7 @@ using Pepper.Structures;
 
 namespace Pepper;
 
-public sealed record WwiseAudioPack : IDisposable {
+public sealed class WwiseAudioPack : IDisposable {
 	public WwiseAudioPack(Stream stream) {
 		BaseStream = stream;
 
@@ -115,4 +115,6 @@ public sealed record WwiseAudioPack : IDisposable {
 		size = entry.Size;
 		return owned;
 	}
+
+	public override string ToString() => $"AKPK {{ {Soundbanks.Length} banks, {Streams.Length} streams, {External} media files }}";
 }

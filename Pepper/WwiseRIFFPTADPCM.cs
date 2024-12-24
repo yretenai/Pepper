@@ -8,7 +8,8 @@ using Pepper.Structures;
 namespace Pepper;
 
 // ported from vgmstream
-public record WwiseRIFFPTADPCM : WwiseRIFFFile {
+public class WwiseRIFFPTADPCM : WaveRIFFFile {
+	// @formatter:off
     private static readonly int[,,] TABLE = { {
             {   -14,  2},  {   -10,  2},  {    -7,  1},  {    -5,  1},   {   -3,  0},   {   -2,  0},   {   -1,  0},   {    0,  0},
             {     0,  0},  {     1,  0},  {     2,  0},  {     3,  0},   {    5,  1},   {    7,  1},   {   10,  2},   {   14,  2},
@@ -47,6 +48,7 @@ public record WwiseRIFFPTADPCM : WwiseRIFFFile {
             {  1024, 10},  {  3072, 11},  {  5120, 11},  {  7168, 11},   {10240, 11},   {14336, 11},   {20480, 11},   {28672, 11},
         },
     };
+    // @formatter:on
 
 	public WwiseRIFFPTADPCM(Stream stream, bool leaveOpen = false) : base(stream, leaveOpen) {
 		if (FormatChunk.Codec is not WAVECodec.WwisePTADPCM) {
