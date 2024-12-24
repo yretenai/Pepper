@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using Pepper.Structures;
 
 namespace Pepper;
@@ -124,6 +125,12 @@ public class WAVERIFFFile : IDisposable, IChunkedFile {
 							label = prom.FriendlyName;
 							return true;
 						}
+					} else if (labelChunk.Id == default) {
+						if (labelChunk.Buffer.Span.ContainsAnyExceptInRange<byte>(0x20, 0x7A)) {
+							continue;
+						}
+
+						label = Encoding.ASCII.GetString(labelChunk.Buffer.Span);
 					}
 				}
 			}
