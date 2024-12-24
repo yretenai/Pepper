@@ -4,7 +4,7 @@ using System.Buffers.Binary;
 using System.IO;
 using Pepper.Structures;
 
-namespace Pepper;
+namespace Pepper.IO;
 
 internal sealed class BitOggStream(Stream stream) : IDisposable {
 	private const int PageBufferSize = (int) SizeEnum.HeaderBytes + (int) SizeEnum.MaxSegments + (int) SizeEnum.SegmentSize * (int) SizeEnum.MaxSegments;

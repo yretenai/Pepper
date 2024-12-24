@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using OggVorbisSharp;
+using Pepper.IO;
 using Pepper.Structures;
 using static OggVorbisSharp.Ogg;
 using static OggVorbisSharp.Vorbis;

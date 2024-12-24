@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Pepper.IO;
 using Pepper.Structures;
 
 namespace Pepper;

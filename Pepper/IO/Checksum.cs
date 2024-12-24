@@ -1,6 +1,6 @@
 using System;
 
-namespace Pepper;
+namespace Pepper.IO;
 
 internal static class Checksum {
 	private static readonly uint[] Lookup = [

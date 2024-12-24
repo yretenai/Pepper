@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Pepper.Structures;
 
-namespace Pepper;
+namespace Pepper.IO;
 
 internal sealed class BitStream {
 	public BitStream(Memory<byte> data) => Data = data;
