@@ -95,11 +95,13 @@ public sealed class WwiseAudioPack : IDisposable {
 	public AKPKEntry[] Streams { get; init; }
 	public AKPKEntry64[] External { get; init; }
 	public Stream BaseStream { get; init; }
-	public string? Tag { get; set; }
+	public bool IsEmpty => Soundbanks.Length == 0 && Streams.Length == 0 && External.Length == 0;
 
 	public void Dispose() {
 		BaseStream.Dispose();
 	}
+
+	public string GetFolder(IAPKPEntry entry) => NameTable.TryGetValue(entry.Folder, out var name) ? name : $"Folder{entry.Folder}";
 
 	public byte[] GetEntryData(IAPKPEntry entry) {
 		var owned = new byte[entry.Size];

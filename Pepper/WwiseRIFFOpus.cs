@@ -10,7 +10,7 @@ using Pepper.Structures;
 namespace Pepper;
 
 // ported from vgmstream
-public sealed class WwiseRIFFOpus : WaveRIFFFile {
+public sealed class WwiseRIFFOpus : WAVERIFFFile {
 	private static readonly byte[][] MappingMatrix = [[0], [0, 1], [0, 2, 1], [0, 1, 2, 3], [0, 4, 1, 2, 3], [0, 4, 1, 2, 3, 5], [0, 6, 1, 2, 3, 4, 5], [0, 6, 1, 2, 3, 4, 5, 7]];
 
 	public WwiseRIFFOpus(Stream stream, bool forceStereo = false, bool leaveOpen = false) : base(stream, leaveOpen) {

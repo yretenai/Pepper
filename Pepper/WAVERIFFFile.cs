@@ -1,14 +1,17 @@
 using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using Pepper.Structures;
 
 namespace Pepper;
 
-public class WaveRIFFFile : IDisposable, IChunkedFile {
-	public WaveRIFFFile(Stream stream, bool leaveOpen = false) {
+public class WAVERIFFFile : IDisposable, IChunkedFile {
+	public WAVERIFFFile(Stream stream, bool leaveOpen = false) {
 		Stream = stream;
 		LeaveOpen = leaveOpen;
 
@@ -28,13 +31,25 @@ public class WaveRIFFFile : IDisposable, IChunkedFile {
 			stream.ReadExactly(MemoryMarshal.AsBytes(fragmentSpan));
 			Chunks.Add(stream.Position, fragment);
 
-			switch (fragment.Id) {
-				case 0x20746d66:
-					FormatOffset = stream.Position;
-					break;
-				case 0x61746164:
-					DataOffset = stream.Position;
-					break;
+			if (fragment.Id == WAVEFormatChunk.Atom) {
+				FormatOffset = stream.Position;
+			} else if (fragment.Id == WAVEChunkAtom.DataAtom) {
+				DataOffset = stream.Position;
+			} else if (fragment.Id == WAVELIST.Atom) {
+				var chunkBytes = MemoryPool<byte>.Shared.Rent(fragment.Size);
+				stream.ReadExactly(chunkBytes.Memory.Span[.. fragment.Size]);
+
+				try {
+					var listChunk = WAVELIST.FromBytes(chunkBytes, fragment.Size);
+					if (listChunk != null) {
+						ListChunks.Add(listChunk);
+					}
+				} catch (Exception e) {
+					Debug.WriteLine($"failed parsing list chunk: {e}", "pepper");
+					chunkBytes.Dispose();
+				}
+
+				continue; // skip size increment
 			}
 
 			stream.Position += fragment.Size;
@@ -68,14 +83,15 @@ public class WaveRIFFFile : IDisposable, IChunkedFile {
 	public long FileStart { get; }
 	protected long FormatOffset { get; }
 	protected long DataOffset { get; }
-	public Dictionary<long, WAVEChunkFragment> Chunks { get; set; } = new();
+	public List<WAVELIST> ListChunks { get; set; } = [];
+	public Dictionary<long, WAVEChunkFragment> Chunks { get; set; } = [];
 
 	public void Dispose() {
 		Dispose(true);
 		GC.SuppressFinalize(this);
 	}
 
-	~WaveRIFFFile() {
+	~WAVERIFFFile() {
 		Dispose(false);
 	}
 
@@ -83,6 +99,10 @@ public class WaveRIFFFile : IDisposable, IChunkedFile {
 		if (disposing) {
 			if (!LeaveOpen) {
 				Stream.Dispose();
+			}
+
+			foreach (var chunk in ListChunks) {
+				chunk.Dispose();
 			}
 		}
 	}
@@ -93,4 +113,23 @@ public class WaveRIFFFile : IDisposable, IChunkedFile {
 	}
 
 	public override string ToString() => $"WAVE {{ {Chunks.Count} chunks, {FormatChunk} }}";
+
+	public bool TryFindNameLabel([MaybeNullWhen(false)] out string label) {
+		foreach (var listChunk in ListChunks) {
+			if (listChunk is WAVELISTAssociatedData associatedData) {
+				foreach (var labelChunk in associatedData.Labels) {
+					if (labelChunk.Id == ProMExportLabel.Atom) {
+						var prom = new ProMExportLabel(labelChunk);
+						if (!string.IsNullOrEmpty(prom.FriendlyName)) {
+							label = prom.FriendlyName;
+							return true;
+						}
+					}
+				}
+			}
+		}
+
+		label = null;
+		return false;
+	}
 }

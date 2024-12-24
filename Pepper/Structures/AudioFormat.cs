@@ -4,4 +4,5 @@ public enum AudioFormat {
 	Wem,
 	Wav,
 	Ogg,
+	Bnk,
 }

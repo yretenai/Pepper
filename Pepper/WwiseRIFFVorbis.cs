@@ -16,7 +16,7 @@ using static OggVorbisSharp.Vorbis;
 namespace Pepper;
 
 // ported from ww2ogg
-public class WwiseRIFFVorbis : WaveRIFFFile {
+public class WwiseRIFFVorbis : WAVERIFFFile {
 	public WwiseRIFFVorbis(Stream stream, string codebookPath, bool leaveOpen = false) : base(stream, leaveOpen) {
 		using var codebooksStream = new FileStream(codebookPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 		WwiseCodebooks = new WwiseCodebook(codebooksStream);

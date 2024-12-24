@@ -4,6 +4,7 @@ namespace Pepper.Structures;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public record struct WAVEFormatChunk {
+	public static readonly WAVEChunkAtom Atom = "fmt ";
 	public WAVECodec Codec { get; set; }
 	public ushort Channels { get; set; }
 	public int SampleRate { get; set; }

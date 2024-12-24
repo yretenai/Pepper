@@ -40,22 +40,22 @@ public static class WemHelper {
 
 	public static WAVEFormatChunk GetFormatChunk(Stream stream) {
 		var pos = stream.Position;
-		using var riff = new WaveRIFFFile(stream, true);
+		using var riff = new WAVERIFFFile(stream, true);
 		stream.Position = pos;
 		return riff.FormatChunk;
 	}
 
-	public static WaveRIFFFile GetDecoder(Stream stream, bool leaveOpen = false, WemCodecOptions? options = default) => GetDecoder(GetCodec(stream), stream, leaveOpen, options);
+	public static WAVERIFFFile GetDecoder(Stream stream, bool leaveOpen = false, WemCodecOptions? options = default) => GetDecoder(GetCodec(stream), stream, leaveOpen, options);
 
-	public static WaveRIFFFile GetDecoder(WAVEFormatChunk chunk, Stream stream, bool leaveOpen = false, WemCodecOptions? options = default) => GetDecoder(chunk.Codec, stream, leaveOpen, options);
+	public static WAVERIFFFile GetDecoder(WAVEFormatChunk chunk, Stream stream, bool leaveOpen = false, WemCodecOptions? options = default) => GetDecoder(chunk.Codec, stream, leaveOpen, options);
 
-	public static WaveRIFFFile GetDecoder(WAVECodec codec, Stream stream, bool leaveOpen = false, WemCodecOptions? options = default) {
+	public static WAVERIFFFile GetDecoder(WAVECodec codec, Stream stream, bool leaveOpen = false, WemCodecOptions? options = default) {
 		options ??= WemCodecOptions.Default;
 		return codec switch {
 			       WAVECodec.WwiseOpus => new WwiseRIFFOpus(stream, options.OpusForceStereo, leaveOpen),
 			       WAVECodec.WwiseVorbis => new WwiseRIFFVorbis(stream, options.CodebooksPath, leaveOpen),
 			       WAVECodec.WwisePTADPCM => new WwiseRIFFPTADPCM(stream, leaveOpen),
-			       _ => new WaveRIFFFile(stream, leaveOpen),
+			       _ => new WAVERIFFFile(stream, leaveOpen),
 		       };
 	}
 

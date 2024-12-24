@@ -19,16 +19,12 @@ public sealed class WwiseSoundbank : IDisposable, IChunkedFile {
 			stream.ReadExactly(MemoryMarshal.AsBytes(fragmentSpan));
 			Chunks.Add(stream.Position, fragment);
 
-			switch (fragment.Id) {
-				case AKBKHeader.Magic:
-					headerOffset = (int) stream.Position;
-					break;
-				case AKBKDataIndex.Magic:
-					dataIndexOffset = (int) stream.Position;
-					break;
-				case AKBKData.Magic:
-					DataOffset = stream.Position;
-					break;
+			if (fragment.Id == AKBKHeader.Atom) {
+				headerOffset = (int) stream.Position;
+			} else if (fragment.Id == AKBKDataIndex.Atom) {
+				dataIndexOffset = (int) stream.Position;
+			} else if (fragment.Id == WAVEChunkAtom.DataAtom) {
+				DataOffset = stream.Position;
 			}
 
 			stream.Position += fragment.Size;
@@ -52,12 +48,12 @@ public sealed class WwiseSoundbank : IDisposable, IChunkedFile {
 		}
 	}
 
-	public Dictionary<uint, AKBKDataIndex> DataIndex { get; } = new();
+	public Dictionary<uint, AKBKDataIndex> DataIndex { get; } = [];
 	public long DataOffset { get; }
 	public AKBKHeader Header { get; }
 	public Stream BaseStream { get; }
 
-	public Dictionary<long, WAVEChunkFragment> Chunks { get; set; } = new();
+	public Dictionary<long, WAVEChunkFragment> Chunks { get; set; } = [];
 
 	public void Dispose() {
 		BaseStream.Dispose();
