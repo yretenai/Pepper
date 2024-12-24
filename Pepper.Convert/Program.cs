@@ -46,7 +46,7 @@ foreach (var file in args) {
 							using var unmanagedStream = new UnmanagedMemoryStream((byte*) pin.Pointer, size);
 							using var riff = new WAVERIFFFile(unmanagedStream);
 							if (riff.TryFindNameLabel(out var label)) {
-								name += $"_{label}";
+								name += $"_{label.Replace('/', '_')}";
 							}
 						}
 					}

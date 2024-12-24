@@ -2,37 +2,37 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using OggVorbisSharp;
+using Pepper.IO;
 using Pepper.Structures;
 
 namespace Pepper;
 
 public static class WemHelper {
 	static WemHelper() {
-		var ogg = IntPtr.Zero;
-		var vorbis = IntPtr.Zero;
-		try {
-			var platformPrefix = Environment.OSVersion.Platform is PlatformID.Win32NT ? string.Empty : "lib";
-			var platformSuffix = Environment.OSVersion.Platform switch {
-				                     PlatformID.Win32NT => "dll",
-				                     PlatformID.MacOSX => "dylib",
-				                     _ => "so",
-			                     };
+		NativeLibrary.SetDllImportResolver(typeof(Ogg).Assembly, NativeLoader.DllImportResolver);
 
-			if (NativeLibrary.TryLoad($"{platformPrefix}ogg.{platformSuffix}", out ogg) &&
-			    NativeLibrary.TryLoad($"{platformPrefix}vorbis.{platformSuffix}", out vorbis)) {
+		var ogg = nint.Zero;
+		var vorbis = nint.Zero;
+		try {
+			ogg = NativeLoader.DllImportResolver("ogg", Assembly.GetExecutingAssembly(), DllImportSearchPath.SafeDirectories);
+			vorbis = NativeLoader.DllImportResolver("vorbis", Assembly.GetExecutingAssembly(), DllImportSearchPath.SafeDirectories);
+			if (ogg != nint.Zero && vorbis != nint.Zero) {
 				CanUseRevorb = true;
 			}
 		} finally {
-			if (ogg != IntPtr.Zero) {
+			if (ogg != nint.Zero) {
 				NativeLibrary.Free(ogg);
 			}
 
-			if (vorbis != IntPtr.Zero) {
+			if (vorbis != nint.Zero) {
 				NativeLibrary.Free(vorbis);
 			}
 		}
 	}
+
 
 	public static bool CanUseRevorb { get; set; }
 
