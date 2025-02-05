@@ -32,7 +32,12 @@ internal static class Program {
 			var type = WemHelper.GetType(fileStream);
 			switch (type) {
 				case WwiseType.AudioStream: {
-					HandleWem(paths, output, fileStream, Path.GetFileNameWithoutExtension(file), file);
+					try {
+						HandleWem(paths, output, fileStream, Path.GetFileNameWithoutExtension(file), file);
+					} catch (Exception e) {
+						Console.Error.WriteLine($"Failed converting wem stream {file}: {e}");
+					}
+
 					continue;
 				}
 				case WwiseType.Soundbank: {
@@ -83,7 +88,11 @@ internal static class Program {
 			unsafe {
 				using var pin = rented.Memory.Pin();
 				using var unmanagedStream = new UnmanagedMemoryStream((byte*) pin.Pointer, size);
-				HandleWem(paths, output, unmanagedStream, id.ToString("D"), file);
+				try {
+					HandleWem(paths, output, unmanagedStream, id.ToString("D"), file);
+				} catch (Exception e) {
+					Console.Error.WriteLine($"Failed converting wem stream {id} in bank {file}: {e}");
+				}
 			}
 		}
 	}
