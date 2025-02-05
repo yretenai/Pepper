@@ -23,7 +23,7 @@ public sealed class WwiseSoundbank : IDisposable, IChunkedFile {
 				headerOffset = (int) stream.Position;
 			} else if (fragment.Id == AKBKDataIndex.Atom) {
 				dataIndexOffset = (int) stream.Position;
-			} else if (fragment.Id == WAVEChunkAtom.DataAtom) {
+			} else if (fragment.Id == WAVEChunkAtom.BankDataAtom) {
 				DataOffset = stream.Position;
 			}
 

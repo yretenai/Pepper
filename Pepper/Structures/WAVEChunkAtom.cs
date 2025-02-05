@@ -7,6 +7,7 @@ namespace Pepper.Structures;
 
 [InlineArray(4)] [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 1)]
 public struct WAVEChunkAtom : IEquatable<WAVEChunkAtom> {
+	public static readonly WAVEChunkAtom BankDataAtom = "DATA";
 	public static readonly WAVEChunkAtom DataAtom = "data";
 
 	public byte Value;
