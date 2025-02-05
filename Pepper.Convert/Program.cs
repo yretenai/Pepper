@@ -158,7 +158,7 @@ internal static class Program {
 		basePath = basePath.TrimEnd('/');
 		filePath = filePath.TrimEnd('/');
 
-		if (language.Equals("sfx", StringComparison.OrdinalIgnoreCase)) {
+		if (!language.Equals("sfx", StringComparison.OrdinalIgnoreCase)) {
 			basePath += $"/{language}";
 		}
 
