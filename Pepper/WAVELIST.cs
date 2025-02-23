@@ -34,6 +34,8 @@ public class WAVELIST : IDisposable {
 
 		var data = storage.Memory[..fragmentSize];
 		var id = MemoryMarshal.Read<WAVEChunkAtom>(data.Span);
+
+		// ReSharper disable once ConvertIfStatementToReturnStatement
 		if (id == WAVELISTAssociatedData.Atom) {
 			return new WAVELISTAssociatedData(storage, data);
 		}

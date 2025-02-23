@@ -13,7 +13,7 @@ public class ProMExportLabel {
 		var text = Encoding.UTF8.GetString(label.Buffer.Span);
 		var parts = text.Split("--", 2, StringSplitOptions.TrimEntries);
 		var header = parts[0];
-		var body = parts[1]; // todo: parse this properly, has some nice timing info
+		_ = parts[1]; // body todo: parse this properly, has some nice timing info
 
 		var index = header.IndexOf("FriendlyName", StringComparison.OrdinalIgnoreCase);
 		if (index > -1) {
