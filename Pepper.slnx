@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Pepper.Convert/Pepper.Convert.csproj" />
+  <Project Path="Pepper/Pepper.csproj" />
+</Solution>
