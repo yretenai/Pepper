@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Pepper.Structures;
 
-[InlineArray(4)] [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 1)]
+[InlineArray(4)]
 public struct WAVEChunkAtom : IEquatable<WAVEChunkAtom> {
 	public static readonly WAVEChunkAtom BankDataAtom = "DATA";
 	public static readonly WAVEChunkAtom DataAtom = "data";
