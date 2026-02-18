@@ -7,11 +7,11 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using OggVorbisSharp;
 using Pepper.IO;
+using Pepper.Native;
 using Pepper.Structures;
-using static OggVorbisSharp.Ogg;
-using static OggVorbisSharp.Vorbis;
+using static Pepper.Native.Ogg;
+using static Pepper.Native.Vorbis;
 
 namespace Pepper;
 

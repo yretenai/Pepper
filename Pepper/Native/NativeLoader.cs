@@ -3,7 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace Pepper.IO;
+namespace Pepper.Native;
 
 public static class NativeLoader {
 	internal static nint DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath) {
@@ -26,7 +26,7 @@ public static class NativeLoader {
 		}
 
 		foreach (var dir in new[] { Path.Combine(cwd, $"runtimes/{RuntimeInformation.RuntimeIdentifier}/native/"), cwd }) {
-			foreach (var libName in new[] { name, "lib" + name, name + "-0", $"lib{name}-0" }) {
+			foreach (var libName in new[] { name, "lib" + name }) {
 				var target = Path.Combine(dir, libName) + ext;
 				if (File.Exists(target)) {
 					var ptr = NativeLibrary.Load(target);

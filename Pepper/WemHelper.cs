@@ -4,8 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using OggVorbisSharp;
-using Pepper.IO;
+using Pepper.Native;
 using Pepper.Structures;
 
 namespace Pepper;
@@ -17,8 +16,8 @@ public static class WemHelper {
 		var ogg = nint.Zero;
 		var vorbis = nint.Zero;
 		try {
-			ogg = NativeLoader.DllImportResolver("ogg", Assembly.GetExecutingAssembly(), DllImportSearchPath.SafeDirectories);
-			vorbis = NativeLoader.DllImportResolver("vorbis", Assembly.GetExecutingAssembly(), DllImportSearchPath.SafeDirectories);
+			ogg = NativeLoader.DllImportResolver("libogg", Assembly.GetExecutingAssembly(), DllImportSearchPath.SafeDirectories);
+			vorbis = NativeLoader.DllImportResolver("libvorbis", Assembly.GetExecutingAssembly(), DllImportSearchPath.SafeDirectories);
 			if (ogg != nint.Zero && vorbis != nint.Zero) {
 				CanUseRevorb = true;
 			}
@@ -32,7 +31,6 @@ public static class WemHelper {
 			}
 		}
 	}
-
 
 	public static bool CanUseRevorb { get; set; }
 
