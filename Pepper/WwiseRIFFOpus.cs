@@ -160,15 +160,21 @@ public sealed class WwiseRIFFOpus : WAVERIFFFile {
 		Span<byte> frame = stackalloc byte[0xFFFF];
 		var skip = (int) FormatChunkEx.Skip;
 		foreach (var frameSize in FrameTable) {
-			Stream.ReadExactly(frame[..frameSize]);
-			granule += GetNumberOfSamples(frame[..frameSize]) * GetSamplesPerFrame(frame[..frameSize], FormatChunk.SampleRate);
+			var frameSlice = frame[..frameSize];
+			if (Stream.Length - Stream.Position == 0) {
+				frameSlice.Clear();
+			} else {
+				Stream.ReadExactly(frameSlice);
+			}
+
+			granule += GetNumberOfSamples(frameSlice) * GetSamplesPerFrame(frameSlice, FormatChunk.SampleRate);
 			if (skip > 0) {
 				skip -= frameSize;
 				continue;
 			}
 
 			ogg.SetGranule(granule);
-			ogg.Write(frame[..frameSize]);
+			ogg.Write(frameSlice);
 			ogg.FlushPage(false, granule > FormatChunkEx.Samples);
 		}
 	}
